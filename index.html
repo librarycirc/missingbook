@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Simulator: Missing Monograph</title>
+    <style>
+        /* EXACT COLORS FROM PRIVACY-GAME */
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #2e3b4e; 
+            color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #game-container {
+            width: 600px;
+            background-color: #3b4a5e; 
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        h1 { color: #4db6ac; margin-bottom: 5px; } 
+        p#scenario-title { color: #80cbc4; margin-top: 0; margin-bottom: 20px; }
+        
+        #stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #80cbc4;
+        }
+        #stress-meter {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 6px solid #4db6ac;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px auto;
+            font-size: 1.1em;
+            background-color: #1c262f;
+            transition: all 0.4s ease;
+        }
+        #dialogue-box {
+            background-color: #1c262f;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 80px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 5px solid #4db6ac;
+        }
+        #choices {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .choice-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4db6ac;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.95rem;
+            text-align: left;
+            transition: background-color 0.2s;
+        }
+        .choice-btn:hover { 
+            background-color: #80cbc4; 
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>🎭 Library Simulator</h1>
+    <p id="scenario-title">Scenario: The Missing Monograph</p>
+    
+    <div id="stats">
+        <div>Round: <span id="round">1</span>/3</div>
+        <div>Strikes: <span id="strikes">0</span>/3</div>
+    </div>
+
+    <div id="stress-meter">Calm</div>
+
+    <div id="dialogue-box">
+        <p id="npc-text">"Excuse me! Your system says 'Advanced Microeconomics' is available, but the shelf is empty. I have a seminar in 45 minutes. Where is it?"</p>
+    </div>
+
+    <div id="choices"></div>
+</div>
+
+<script>
+    let round = 1;
+    let strikes = 0;
+    let stressIndex = 0;
+    const stressLevels = ["Calm", "Annoyed", "Frustrated", "Angry", "Livid"];
+
+    const data = [
+        {
+            npc: "I've checked twice! I don't have time for system errors. My students are waiting!",
+            choices: [
+                { text: "I'll check the reshelving carts immediately for you, Professor.", stress: 0, strike: false },
+                { text: "Are you sure you looked in the right call number section?", stress: 1, strike: true },
+                { text: "I apologize. While I look, let me see if the E-book is available.", stress: 0, strike: false }
+            ]
+        },
+        {
+            npc: "An E-book? I suppose... but I prefer the physical copy. Why is this happening?",
+            choices: [
+                { text: "It might be 'In-Process' or misshelved. I'll start a 'Trace' now.", stress: 0, strike: false },
+                { text: "We are understaffed today, so shelving is quite backed up.", stress: 1, strike: true },
+                { text: "I'll personally check the sorting area. Can I email you once found?", stress: 0, strike: false }
+            ]
+        },
+        {
+            npc: "I need a solution now. This book is critical for today's lecture!",
+            choices: [
+                { text: "I can check if a nearby campus library has a copy we can courier.", stress: 0, strike: false },
+                { text: "You should have reserved the book earlier if it was this critical.", stress: 2, strike: true },
+                { text: "I've found the digital link! I'll print the first chapter for you now.", stress: 0, strike: false }
+            ]
+        }
+    ];
+
+    function render() {
+        if (strikes >= 3) return end("GAME OVER: Complaint filed.");
+        if (round > 3) return end("SUCCESS: Crisis averted!");
+
+        document.getElementById('round').innerText = round;
+        document.getElementById('strikes').innerText = strikes;
+        const m = document.getElementById('stress-meter');
+        m.innerText = stressLevels[stressIndex];
+        m.style.borderColor = stressIndex >= 3 ? "#ba0c2f" : "#4db6ac";
+
+        const container = document.getElementById('choices');
+        container.innerHTML = "";
+        data[round-1].choices.forEach((c, i) => {
+            const b = document.createElement('button');
+            b.className = "choice-btn";
+            b.innerText = c.text;
+            b.onclick = () => {
+                if(c.strike) strikes++;
+                stressIndex = Math.min(4, stressIndex + c.stress);
+                round++;
+                if (round <= 3) document.getElementById('npc-text').innerText = data[round-2].npc;
+                render();
+            };
+            container.appendChild(b);
+        });
+    }
+
+    function end(msg) {
+        document.getElementById('game-container').innerHTML = `<h1>${msg}</h1><button class="choice-btn" style="text-align:center" onclick="location.reload()">Restart</button>`;
+    }
+
+    render();
+</script>
+</body>
+</html>
